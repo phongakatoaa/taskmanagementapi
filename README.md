@@ -60,7 +60,7 @@ The following users are seeded in the database:
     - `status`: Filter tasks by status. Possible values: `PENDING`, `IN_PROGRESS`, `COMPLETED`.
     - `assignedUserId`: Filter tasks by assigned user ID.
     - `sortBy`: Sort tasks by any field. Possible values: `id`, `title`, `description`, `due_date`, `status`,
-      `created_at`, `assigned_user_id`.
+      `created_at`, `assigned_user_id`, `assigned_username`.
     - `sortOrder`: Sort order. Possible values: `asc`, `desc`.
 
 #### Get Task Summary

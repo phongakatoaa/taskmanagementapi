@@ -8,13 +8,14 @@ import (
 
 type (
 	Entry struct {
-		ID             int       `json:"id"`
-		AssignedUserID int       `json:"assignedUserId"`
-		Title          string    `json:"title"`
-		Description    string    `json:"description"`
-		Status         Status    `json:"status"`
-		CreatedAt      time.Time `json:"createdAt"`
-		DueDate        time.Time `json:"dueDate"`
+		ID               int       `json:"id"`
+		AssignedUserID   int       `json:"assignedUserId"`
+		AssignedUsername string    `json:"assignedUsername"`
+		Title            string    `json:"title"`
+		Description      string    `json:"description"`
+		Status           Status    `json:"status"`
+		CreatedAt        time.Time `json:"createdAt"`
+		DueDate          time.Time `json:"dueDate"`
 	}
 
 	Status string

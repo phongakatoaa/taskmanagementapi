@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/lib/pq"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 type (
@@ -33,6 +34,8 @@ const (
 	StatusCol         DBColumn = "tasks.status"
 	CreatedAtCol      DBColumn = "tasks.created_at"
 	DueDateCol        DBColumn = "tasks.due_date"
+
+	AssignedUsernameCol DBColumn = "users.username AS assigned_username"
 )
 
 var allColumns = []DBColumn{IDCol, TitleCol, DescriptionCol, AssignedUserIDCol, StatusCol, CreatedAtCol, DueDateCol}
@@ -42,6 +45,9 @@ func (col DBColumn) String() string {
 }
 
 func ParseDBColumn(str string) (DBColumn, error) {
+	if str == "assigned_username" {
+		return DBColumn(str), nil
+	}
 	if !strings.HasPrefix(str, "tasks") {
 		str = fmt.Sprintf("tasks.%s", str)
 
@@ -156,7 +162,7 @@ func (db *DB) scanRows(rows *sql.Rows) ([]Entry, error) {
 
 		err := rows.Scan(
 			&entry.ID, &entry.Title, &entry.Description, &entry.AssignedUserID,
-			&entry.Status, &entry.CreatedAt, &entry.DueDate,
+			&entry.Status, &entry.CreatedAt, &entry.DueDate, &entry.AssignedUsername,
 		)
 		if err != nil {
 			return nil, err
@@ -178,17 +184,17 @@ func (opt FindOptions) buildQuery() (query string, args []interface{}) {
 		args = append(args, pq.Array(opt.Statuses))
 		clauses = append(clauses, fmt.Sprintf("status = ANY($%d)", len(args)))
 	}
+
+	selectCols := append(allColumns, AssignedUsernameCol)
+	stmt := fmt.Sprintf(
+		"SELECT %s FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id",
+		strings.Join(toColumnStrings(selectCols), ","),
+	)
+
 	if len(clauses) == 0 {
-		return fmt.Sprintf("SELECT %s FROM api.tasks%s",
-			strings.Join(toColumnStrings(allColumns), ","),
-			opt.sortClause(),
-		), args
+		return fmt.Sprintf("%s%s", stmt, opt.sortClause()), args
 	}
-	return fmt.Sprintf("SELECT %s FROM api.tasks WHERE %s%s",
-		strings.Join(toColumnStrings(allColumns), ","),
-		strings.Join(clauses, " AND "),
-		opt.sortClause(),
-	), args
+	return fmt.Sprintf("%s WHERE %s%s", stmt, strings.Join(clauses, " AND "), opt.sortClause()), args
 }
 
 func (opt FindOptions) sortClause() string {

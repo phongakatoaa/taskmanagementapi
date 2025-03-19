@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/rs/zerolog"
 	"os"
+
+	"github.com/rs/zerolog"
 )
 
 func LogLevel() string {

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/lib/pq"
+
 	"siransbach/taskmanagementapi/postgres"
 )
 
@@ -17,17 +18,21 @@ func TestFindOptions_BuildQuery(t *testing.T) {
 		args  []interface{}
 	}{
 		{
-			name:  "no options",
-			opts:  FindOptions{},
-			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status,tasks.created_at,tasks.due_date FROM api.tasks",
-			args:  []interface{}{},
+			name: "no options",
+			opts: FindOptions{},
+			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status" +
+				",tasks.created_at,tasks.due_date,users.username AS assigned_username" +
+				" FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id",
+			args: []interface{}{},
 		},
 		{
 			name: "with assigned user IDs",
 			opts: FindOptions{
 				AssignedUserIDs: []int{1, 2},
 			},
-			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status,tasks.created_at,tasks.due_date FROM api.tasks WHERE assigned_user_id = ANY($1)",
+			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status" +
+				",tasks.created_at,tasks.due_date,users.username AS assigned_username" +
+				" FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id WHERE assigned_user_id = ANY($1)",
 			args: []interface{}{
 				pq.Array([]int{1, 2}),
 			},
@@ -36,7 +41,9 @@ func TestFindOptions_BuildQuery(t *testing.T) {
 			opts: FindOptions{
 				Statuses: []Status{StatusCompleted, StatusInProgress},
 			},
-			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status,tasks.created_at,tasks.due_date FROM api.tasks WHERE status = ANY($1)",
+			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status" +
+				",tasks.created_at,tasks.due_date,users.username AS assigned_username" +
+				" FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id WHERE status = ANY($1)",
 			args: []interface{}{
 				pq.Array([]Status{StatusCompleted, StatusInProgress}),
 			},
@@ -47,7 +54,9 @@ func TestFindOptions_BuildQuery(t *testing.T) {
 				AssignedUserIDs: []int{1, 2},
 				Statuses:        []Status{StatusCompleted, StatusInProgress},
 			},
-			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status,tasks.created_at,tasks.due_date FROM api.tasks WHERE assigned_user_id = ANY($1) AND status = ANY($2)",
+			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status" +
+				",tasks.created_at,tasks.due_date,users.username AS assigned_username" +
+				" FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id WHERE assigned_user_id = ANY($1) AND status = ANY($2)",
 			args: []interface{}{
 				pq.Array([]int{1, 2}),
 				pq.Array([]Status{StatusCompleted, StatusInProgress}),
@@ -59,8 +68,10 @@ func TestFindOptions_BuildQuery(t *testing.T) {
 				SortBy:    CreatedAtCol,
 				SortOrder: SortOrderAscending,
 			},
-			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status,tasks.created_at,tasks.due_date FROM api.tasks ORDER BY tasks.created_at ASC",
-			args:  []interface{}{},
+			query: "SELECT tasks.id,tasks.title,tasks.description,tasks.assigned_user_id,tasks.status" +
+				",tasks.created_at,tasks.due_date,users.username AS assigned_username" +
+				" FROM api.tasks JOIN auth.users ON users.id = tasks.assigned_user_id ORDER BY tasks.created_at ASC",
+			args: []interface{}{},
 		},
 	}
 
