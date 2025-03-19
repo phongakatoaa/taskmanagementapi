@@ -18,9 +18,13 @@ var lookup = map[int]string{
 	fiber.StatusNotFound:            ErrMsg404,
 }
 
-func Err(c *fiber.Ctx, code int) error {
+func Err(c *fiber.Ctx, code int, customMsg ...string) error {
+	msg := lookup[code]
+	if len(customMsg) > 0 {
+		msg = customMsg[0]
+	}
 	return c.Status(code).JSON(fiber.Map{
-		"error": lookup[code],
+		"error": msg,
 		"code":  code,
 	})
 }

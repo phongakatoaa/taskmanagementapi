@@ -28,7 +28,7 @@ func (h *handlers) employerCreateTask(c *fiber.Ctx) error {
 	}
 
 	if taskRequest.AssignedUserID > 0 {
-		_, err := auth.NewDB(h.pg).FindOne(c.Context(), auth.FindOptions{
+		user, err := auth.NewDB(h.pg).FindOne(c.Context(), auth.FindOptions{
 			IDs: []int{taskRequest.AssignedUserID},
 		})
 		if err != nil {
@@ -38,6 +38,10 @@ func (h *handlers) employerCreateTask(c *fiber.Ctx) error {
 			}
 			log.Err(err).Msg("could not find user")
 			return fiberx.Err(c, fiber.StatusInternalServerError)
+		}
+		if user.IsEmployer() {
+			log.Error().Msg(fmt.Sprintf("user %d is not an employee", taskRequest.AssignedUserID))
+			return fiberx.Err(c, fiber.StatusBadRequest, "assignedUserID is not an employee")
 		}
 	}
 
