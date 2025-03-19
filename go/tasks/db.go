@@ -96,8 +96,8 @@ func (db *DB) Insert(ctx context.Context, entry Entry) (id int, err error) {
 	}
 
 	row := db.pg.QueryRowContext(ctx,
-		"INSERT INTO api.tasks (title,description,assigned_user_id,status) VALUES ($1, $2, $3, $4) RETURNING id",
-		entry.Title, entry.Description, assignedUserID, status,
+		"INSERT INTO api.tasks (title,description,assigned_user_id,status,due_date) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		entry.Title, entry.Description, assignedUserID, status, entry.DueDate,
 	)
 	err = row.Scan(&id)
 	return id, err
