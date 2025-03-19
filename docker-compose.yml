@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:15.7-alpine
+    hostname: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: task_management
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGPORT: 5432
+    volumes:
+      - ./postgres/auth.sql:/docker-entrypoint-initdb.d/1_auth.sql
+      - ./postgres/api.sql:/docker-entrypoint-initdb.d/2_api.sql
+      - ./postgres/seed.sql:/docker-entrypoint-initdb.d/3_seed.sql
+  pgbouncer:
+    image: us-east1-docker.pkg.dev/build-217813/colossus/pgbouncer:1.22.1-1
+    depends_on:
+      - postgres
+    hostname: pgbouncer
+    restart: always
+    ports:
+      - "6432:6432"
+    environment:
+      DB_NAME: task_management
+      DB_PASSWORD: password
+      DB_HOST: postgres
+      DB_USER: postgres
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ./pgbouncer/auth.txt:/etc/pgbouncer/auth.txt
+  task-management-api:
+    build:
+      context: ./go
+      dockerfile: Dockerfile
+    depends_on:
+      - pgbouncer
+    ports:
+      - "8000:8000"
+    environment:
+      PG_HOST: pgbouncer
+      PG_PORT: 6432
+      PG_USER: postgres
+      PG_PASSWORD: password
+      PG_DATABASE: task_management
+
